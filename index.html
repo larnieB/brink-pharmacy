@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brink Pharmacy</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --brand-blue: #007BFF;
+      --brand-white: #ffffff;
+      --heart-red: #ff4d6d;
+    }
+
+    /* =====================
+       LOADER SCREEN
+    ====================== */
+    #loader {
+      position: fixed;
+      inset: 0;
+      background: var(--brand-blue);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 2.5rem;
+      font-weight: bold;
+      z-index: 100;
+      letter-spacing: 2px;
+      animation: fadeIn 1s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    .loader-text {
+      display: flex;
+      gap: 5px;
+    }
+
+    .loader-text span {
+      opacity: 0;
+      transform: translateY(20px);
+      animation: letterAppear 1s ease-in-out forwards;
+    }
+
+    @keyframes letterAppear {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Staggered animation for each letter */
+    .loader-text span:nth-child(n) {
+      animation-delay: calc(0.1s * var(--i));
+    }
+
+    /* Heartbeat animation with glow */
+    .heart {
+      color: var(--heart-red);
+      animation: heartbeat 1.2s infinite ease-in-out;
+      text-shadow: 0 0 15px rgba(255, 77, 109, 0.8),
+                   0 0 30px rgba(255, 77, 109, 0.6),
+                   0 0 45px rgba(255, 77, 109, 0.4);
+      display: inline-block;
+    }
+
+    @keyframes heartbeat {
+      0%, 20%, 40%, 60%, 80%, 100% {
+        transform: scale(1);
+        text-shadow: 0 0 10px rgba(255, 77, 109, 0.7),
+                     0 0 20px rgba(255, 77, 109, 0.5);
+      }
+      10%, 30%, 50%, 70%, 90% {
+        transform: scale(1.3);
+        text-shadow: 0 0 25px rgba(255, 77, 109, 1),
+                     0 0 50px rgba(255, 77, 109, 0.8);
+      }
+    }
+
+    /* Loading text below */
+    .loading-line {
+      margin-top: 1rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+      letter-spacing: 1px;
+    }
+
+    .loading-line span.dot {
+      opacity: 0;
+      animation: blink 1.5s infinite;
+    }
+
+    .dot:nth-child(1) { animation-delay: 0.2s; }
+    .dot:nth-child(2) { animation-delay: 0.4s; }
+    .dot:nth-child(3) { animation-delay: 0.6s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0; }
+      40% { opacity: 1; }
+    }
+
+    /* Fade out loader */
+    .fade-out {
+      animation: fadeOut 1s ease-in-out forwards;
+    }
+
+    @keyframes fadeOut {
+      0% { opacity: 1; }
+      100% { opacity: 0; visibility: hidden; }
+    }
+
+    /* Hide main content initially */
+    #main-content {
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+
+    #main-content.visible {
+      opacity: 1;
+    }
+
+    /* =====================
+       EXISTING PAGE STYLES
+    ====================== */
+    .hero {
+      background-size: cover;
+      background-position: center;
+      transition: background-image 1s ease-in-out;
+    }
+
+    .whatsapp-btn, .chatbot-btn {
+      position: fixed;
+      bottom: 20px;
+      border-radius: 50%;
+      padding: 14px;
+      color: white;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      animation: bounce 2s infinite;
+      z-index: 40;
+    }
+
+    .whatsapp-btn { right: 80px; background-color: #25D366; }
+    .chatbot-btn { right: 20px; background-color: var(--brand-blue); }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 50;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mobile-menu {
+      display: none;
+    }
+
+    .mobile-menu.open {
+      display: block;
+    }
+    /* Word-by-word animation */
+.word {
+  opacity: 0;
+  display: inline-block;
+  transform: translateY(10px);
+  animation: wordFade 0.5s forwards;
+}
+
+@keyframes wordFade {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* Sequential fade for service cards */
+.service-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+.service-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+/* Responsive loader text */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: var(--brand-blue);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2.5rem;
+  font-weight: bold;
+  z-index: 100;
+  letter-spacing: 2px;
+  animation: fadeIn 1s ease-in-out;
+  text-align: center; /* keeps centered alignment */
+  padding: 0 1rem; /* avoids text hitting screen edges */
+}
+
+/* 📱 Mobile adjustments */
+@media (max-width: 768px) {
+  #loader {
+    font-size: 1.8rem; /* smaller for tablets and phones */
+  }
+  .loading-line {
+    font-size: 1rem;
+  }
+}
+
+/* 🧠 Extra small screens (older/small phones) */
+@media (max-width: 480px) {
+  #loader {
+    font-size: 1.4rem;
+    line-height: 1.4;
+  }
+  .loading-line {
+    font-size: 0.9rem;
+  }
+}
+
+
+  </style>
+</head>
+
+<body class="font-sans text-gray-800">
+
+  <!-- LOADER SCREEN -->
+  <div id="loader">
+    <!-- Main Title -->
+    <div class="loader-text">
+      <span style="--i:1">B</span><span style="--i:2">R</span><span style="--i:3">I</span><span style="--i:4">N</span><span style="--i:5">K</span>
+      <span>&nbsp;</span>
+      <span style="--i:6">P</span><span style="--i:7">H</span><span style="--i:8">A</span><span style="--i:9">R</span><span style="--i:10">M</span><span style="--i:11">A</span><span style="--i:12">C</span><span style="--i:13">Y</span>
+    </div>
+
+    <!-- Loading line -->
+    <div class="loading-line">
+      L<span class="heart">❤️</span>ADING
+      <span class="dot">.</span>
+      <span class="dot">.</span>
+      <span class="dot">.</span>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main-content">
+    <!-- HEADER -->
+    <header class="bg-white shadow fixed w-full z-40">
+      <div class="container mx-auto flex justify-between items-center p-4">
+        <h1 class="text-2xl font-bold text-blue-600">Brink Pharmacy</h1>
+        <nav class="space-x-6 hidden md:flex">
+          <a href="#shop" class="hover:text-blue-600">Shop</a>
+          <button id="openModalBtn" class="hover:text-blue-600">Submit a Prescription</button>
+          <a href="#about" class="hover:text-blue-600">About Us</a>
+          <a href="#blogs" class="hover:text-blue-600">Blogs</a>
+          <a href="#contact" class="hover:text-blue-600">Contact</a>
+        </nav>
+        <button id="menuToggle" class="md:hidden text-3xl text-blue-600 focus:outline-none">☰</button>
+      </div>
+
+      <!-- Mobile Nav -->
+      <div id="mobileMenu" class="mobile-menu bg-white border-t border-gray-200 md:hidden">
+        <nav class="flex flex-col items-center space-y-4 py-4">
+          <a href="#shop" class="hover:text-blue-600" onclick="toggleMenu()">Shop</a>
+          <button id="openModalBtnMobile" class="hover:text-blue-600" onclick="toggleMenu()">Submit a Prescription</button>
+          <a href="#about" class="hover:text-blue-600" onclick="toggleMenu()">About Us</a>
+          <a href="#blogs" class="hover:text-blue-600" onclick="toggleMenu()">Blogs</a>
+          <a href="#contact" class="hover:text-blue-600" onclick="toggleMenu()">Contact</a>
+        </nav>
+      </div>
+    </header>
+
+    <!-- HERO -->
+    <section id="hero" class="hero min-h-screen flex flex-col justify-center items-center text-center text-white relative" style="background-image: url('https://via.placeholder.com/1920x900');">
+      <div class="bg-black bg-opacity-50 absolute inset-0"></div>
+      <div class="relative z-10 space-y-4 p-6">
+        <h2 class="text-4xl md:text-5xl font-extrabold">Your Trusted Partner in Health</h2>
+        <p class="max-w-xl mx-auto">Providing quality medications, expert advice, and exceptional care — all in one place.</p>
+        <div class="space-x-4 mt-4">
+          <a href="#contact" class="bg-white text-blue-600 px-6 py-3 rounded-lg font-medium hover:bg-blue-100">Contact Us</a>
+          <a href="#shop" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700">Order a Drug</a>
+        </div>
+      </div>
+    </section>
+
+   <!-- SERVICES SECTION -->
+<section id="services" class="py-16 bg-gray-50 opacity-0 translate-y-6 transition-all duration-1000" data-animate="fade-in">
+  <div class="container mx-auto px-6 text-center">
+    <h3 class="text-3xl font-bold text-blue-600 mb-10">Our Services</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+      <div class="bg-white p-6 rounded-lg shadow service-card" data-animate="card">
+        <h4 class="text-xl font-semibold mb-2 text-blue-600">Dispensing Of Medications</h4>
+        <p>Safe and accurate dispensing with professional guidance.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow service-card" data-animate="card">
+        <h4 class="text-xl font-semibold mb-2 text-blue-600">Pharmaceutical Counselling</h4>
+        <p>Expert advice to ensure correct use of medications.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow service-card" data-animate="card">
+        <h4 class="text-xl font-semibold mb-2 text-blue-600">Health Screening & Diagnostics</h4>
+        <p>Routine tests and diagnostics for better health monitoring.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow service-card" data-animate="card">
+        <h4 class="text-xl font-semibold mb-2 text-blue-600">Immunisation Services</h4>
+        <p>Vaccinations for all ages to prevent infectious diseases.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+    <!-- ABOUT US SECTION -->
+<section id="about" class="py-16 bg-white opacity-0 translate-y-6 transition-all duration-1000" data-animate="fade-in">
+  <div class="container mx-auto px-6 text-center max-w-4xl">
+    <h3 class="text-3xl font-bold text-blue-600 mb-6">About Us</h3>
+    <p class="text-gray-700 leading-relaxed text-lg about-text" data-animate="words">
+      At <span class="font-semibold text-blue-600">Brink Pharmacy</span>, your health is our priority. 
+      We are more than just a pharmacy — we are your trusted healthcare partner, dedicated to providing 
+      high-quality medications, expert pharmaceutical guidance, and personalized care you can rely on.
+    </p>
+    <p class="text-gray-700 leading-relaxed text-lg mt-4 about-text" data-animate="words">
+      Our mission is to make healthcare more accessible, affordable, and compassionate. Whether you’re 
+      refilling a prescription, seeking professional advice, or looking for health and wellness solutions, 
+      our team is always here to help you make informed choices for a healthier life.
+    </p>
+    <p class="text-gray-700 leading-relaxed text-lg mt-4 about-text" data-animate="words">
+      With a commitment to excellence and integrity, <span class="font-semibold text-blue-600">Brink Pharmacy</span> 
+      continues to grow as a trusted name in community healthcare — serving you with care, compassion, 
+      and convenience every step of the way.
+    </p>
+  </div>
+</section>
+
+
+    <!-- MAP -->
+    <section id="contact" class="py-16">
+      <div class="container mx-auto px-6 text-center">
+        <h3 class="text-3xl font-bold text-blue-600 mb-6">Find Us</h3>
+        <div class="w-full max-w-3xl mx-auto">
+          <iframe class="w-full h-64 rounded-lg shadow" src="https://www.google.com/maps?q=Biafra+Residential+apartments&output=embed"></iframe>
+          <p class="mt-4">
+            <a href="https://www.google.com/maps/place/Biafra+Residential+apartments/@-1.0369235,37.0847664,17z" target="_blank" class="text-blue-600 underline">Open larger map</a>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="bg-blue-600 text-white py-4 text-center">
+      <p>&copy; 2025 Brink Pharmacy. All rights reserved.</p>
+    </footer>
+
+    <!-- FLOATING BUTTONS -->
+    <a href="https://wa.me/254791353785" target="_blank" class="whatsapp-btn" title="Chat on WhatsApp">
+      <i class="fab fa-whatsapp"></i>
+    </a>
+    <button class="chatbot-btn" title="Chat with our Assistant">💬</button>
+
+    <!-- MODAL -->
+    <div id="prescriptionModal" class="modal">
+      <div class="bg-white p-8 rounded-lg w-11/12 md:w-1/2">
+        <h3 class="text-2xl font-bold mb-4 text-blue-600">Submit a Prescription</h3>
+        <form class="space-y-4">
+          <input type="text" placeholder="Full Name" class="w-full border p-3 rounded">
+          <input type="email" placeholder="Email Address" class="w-full border p-3 rounded">
+          <input type="file" class="w-full border p-3 rounded">
+          <textarea placeholder="Additional notes" class="w-full border p-3 rounded"></textarea>
+          <div class="flex justify-end space-x-4">
+            <button type="button" id="closeModalBtn" class="bg-gray-300 px-4 py-2 rounded">Cancel</button>
+            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Submit</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script src="https://kit.fontawesome.com/a2d9d6a06a.js" crossorigin="anonymous"></script>
+  <script>
+  // =======================
+  // LOADER
+  // =======================
+  window.addEventListener("load", () => {
+    const loader = document.getElementById("loader");
+    const main = document.getElementById("main-content");
+    setTimeout(() => {
+      loader.classList.add("fade-out");
+      setTimeout(() => {
+        loader.style.display = "none";
+        main.classList.add("visible");
+      }, 1000);
+    }, 5000); // Loader visible for 5 seconds
+  });
+
+  // =======================
+  // HERO SLIDER
+  // =======================
+  const hero = document.getElementById("hero");
+  const images = ["photo.jpeg", "photo.jpeg", "photo.jpeg"];
+  let index = 0;
+  setInterval(() => {
+    index = (index + 1) % images.length;
+    hero.style.backgroundImage = `url('${images[index]}')`;
+  }, 4000);
+
+  // =======================
+  // MODAL
+  // =======================
+  const modal = document.getElementById("prescriptionModal");
+  const openBtn = document.getElementById("openModalBtn");
+  const openBtnMobile = document.getElementById("openModalBtnMobile");
+  const closeBtn = document.getElementById("closeModalBtn");
+
+  function openModal() { modal.style.display = "flex"; }
+  function closeModal() { modal.style.display = "none"; }
+  openBtn.onclick = openModal;
+  openBtnMobile.onclick = openModal;
+  closeBtn.onclick = closeModal;
+  window.onclick = (e) => { if (e.target === modal) closeModal(); };
+
+  // =======================
+  // MENU TOGGLE
+  // =======================
+  const menuToggle = document.getElementById("menuToggle");
+  const mobileMenu = document.getElementById("mobileMenu");
+  function toggleMenu() { mobileMenu.classList.toggle("open"); }
+  menuToggle.addEventListener("click", toggleMenu);
+
+  // =======================
+  // FADE-IN SECTIONS
+  // =======================
+  const fadeElems = document.querySelectorAll("[data-animate='fade-in']");
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add("opacity-100", "translate-y-0");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+  fadeElems.forEach(elem => observer.observe(elem));
+
+  // =======================
+  // WORD-BY-WORD REVEAL (FIXED SPACING + DELAYED START)
+  // =======================
+  const wordElems = document.querySelectorAll("[data-animate='words']");
+
+  const wordObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        // Wait until fade-in is complete before animating words
+        setTimeout(() => {
+          const paragraph = entry.target;
+          const words = paragraph.textContent.trim().split(/\s+/);
+          paragraph.innerHTML = ""; // Clear text
+
+          words.forEach((word, i) => {
+            const span = document.createElement("span");
+            span.textContent = word;
+            span.classList.add("word");
+            span.style.animationDelay = `${i * 0.04}s`; // smoother pacing
+            paragraph.appendChild(span);
+            paragraph.appendChild(document.createTextNode(" ")); // ✅ keep spacing
+          });
+        }, 500); // slight delay for fade-in effect
+
+        wordObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+
+  wordElems.forEach(elem => wordObserver.observe(elem));
+
+  // =======================
+  // SERVICE CARD REVEAL
+  // =======================
+  const serviceCards = document.querySelectorAll("[data-animate='card']");
+
+  const serviceObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        serviceCards.forEach((card, i) => {
+          setTimeout(() => card.classList.add("visible"), i * 200); // staggered reveal
+        });
+        serviceObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.2 });
+
+  if (serviceCards.length) {
+    serviceObserver.observe(serviceCards[0].closest("section"));
+  }
+</script>
+
+</body>
+</html>
